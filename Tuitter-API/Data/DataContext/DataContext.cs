@@ -12,10 +12,17 @@ namespace Tuitter_API.Data.DataContext
         {
         }
         public DbSet<User> Users { get; set; }
+        public DbSet<Post> Posts { get; set; }
+        public DbSet<Category> Categories { get; set; }
+
+
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             builder.ApplyConfiguration(new UsersMapping());
+            builder.ApplyConfiguration(new PostsMapping());
+            builder.ApplyConfiguration(new CategoriesMapping());
+
 
             base.OnModelCreating(builder);
         }
