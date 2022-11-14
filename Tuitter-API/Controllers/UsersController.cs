@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Mime;
+using Tuitter_API.Repository.Post;
 using Tuitter_API.Repository.User;
 using Tuitter_API.Service;
 
@@ -10,10 +11,12 @@ namespace Tuitter_API.Controllers
     public class UsersController : BaseApiController
     {
         private readonly IUserService _userService;
+        private readonly IPostRepository _postRepository;
 
-        public UsersController(IUserService userService)
+        public UsersController(IUserService userService, IPostRepository postRepository)
         {
             _userService = userService;
+            _postRepository = postRepository;
         }
 
         [HttpPost("register")]
@@ -33,6 +36,18 @@ namespace Tuitter_API.Controllers
             if (response.IsError)
                 return BadRequest(response.ResponseMsg);
             return Ok(response);
+        }
+
+        [HttpGet("{id}")]
+        [AllowAnonymous]
+        public async Task<ActionResult<UserDto>> GetUserById(int id)
+        {
+            var user = await _userService.GetUserById(id);
+            var usersPosts = await _postRepository.GetAllPostsForUser(id);
+
+            var userDto = new UserDto { UserId = user.Id, Username = user.UserName, Posts = usersPosts };
+            
+            return Ok(userDto);
         }
     }
 }

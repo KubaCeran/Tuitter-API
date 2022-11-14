@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Tuitter_API.Data.DataContext;
 using Tuitter_API.Repository.User;
 
 namespace Tuitter_API.Service;
@@ -13,21 +14,31 @@ namespace Tuitter_API.Service;
     {
         Task<RegisterResultDto> RegisterUser(RegisterDto registerDto);
         Task<LoginResultDto> LoginUser(RegisterDto registerDto);
+        Task<Data.Entities.User> GetUserById(int id);
 
 }
 public class UserService : IUserService
     {
         private readonly UserManager<Data.Entities.User> _userManager;
         private readonly IOptions<AuthConfiguration> _authOptions;
+        private readonly DataContext _dataContext;
 
-        public UserService(UserManager<Data.Entities.User> userManager,
-        IOptions<AuthConfiguration> authOptions)
-        {
-            _userManager = userManager;
-            _authOptions = authOptions;
-        }
+    public UserService(UserManager<Data.Entities.User> userManager,
+        IOptions<AuthConfiguration> authOptions,
+        DataContext dataContext)
+    {
+        _userManager = userManager;
+        _authOptions = authOptions;
+        _dataContext = dataContext;
+    }
 
-        public async Task<LoginResultDto> LoginUser(RegisterDto registerDto)
+    public async Task<Data.Entities.User> GetUserById(int id)
+    {
+        return await _dataContext.Users.FindAsync(id);
+
+    }
+
+    public async Task<LoginResultDto> LoginUser(RegisterDto registerDto)
         {
             var user = await _userManager.FindByNameAsync(registerDto.Username);
             if (user != null && await _userManager.CheckPasswordAsync(user, registerDto.Password))

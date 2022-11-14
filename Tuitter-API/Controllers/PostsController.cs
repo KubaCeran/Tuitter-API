@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Tuitter_API.Data.Entities;
 using Tuitter_API.Repository.Categories;
 using Tuitter_API.Repository.Post;
+using Tuitter_API.Service;
 using Tuitter_API.Service.User;
 
 namespace Tuitter_API.Controllers
@@ -10,21 +11,47 @@ namespace Tuitter_API.Controllers
     public class PostsController : BaseApiController
     {
         private readonly ILoggedUserService _loggedUserService;
+        private readonly IUserService _userService;
         private readonly IPostRepository _postRepository;
         private readonly ICategoryRepository _categoryRepository;
 
-        public PostsController(IPostRepository postRepository, ICategoryRepository categoryRepository, ILoggedUserService loggedUserService)
+        public PostsController(IPostRepository postRepository, ICategoryRepository categoryRepository, ILoggedUserService loggedUserService, IUserService userService)
         {
             _postRepository = postRepository;
             _categoryRepository = categoryRepository;
             _loggedUserService = loggedUserService;
+            _userService = userService;
         }
 
         [HttpGet("all")]
+        [AllowAnonymous]
         public async Task<ActionResult<List<PostDto>>> GetAllPosts()
         {
 
-            return await _postRepository.GetAllPosts();
+            var posts = await  _postRepository.GetAllPosts();
+            if (posts.Count() == 0)
+                return BadRequest("Nobody created post yet");
+            return Ok(posts);
+        }
+
+        [HttpGet("user/{id}")]
+        [AllowAnonymous]
+        public async Task<ActionResult<List<PostDto>>> GetAllPostsForUser(int id)
+        {
+            var posts = await _postRepository.GetAllPostsForUser(id);
+            if (posts.Count() == 0)
+                return BadRequest("No posts found");
+            return Ok(posts);
+        }
+
+        [HttpGet("category/{id}")]
+        [AllowAnonymous]
+        public async Task<ActionResult<List<PostDto>>> GetAllPostsForCategory(int id)
+        {
+            var posts = await _postRepository.GetAllPostsForCategory(id);
+            if (posts.Count() == 0)
+                return BadRequest("No posts found");
+            return Ok(posts);
         }
 
         [HttpPost("add")]
@@ -59,7 +86,7 @@ namespace Tuitter_API.Controllers
                     Body = post.Body,
                     CategoryName = post.Category.Title,
                     CreatedAt = post.CreationTime,
-                    CretaedByUsername = post.User.UserName,
+                    UserId = post.UserId,
                     Headline = post.Headline
                 });
             }
@@ -67,6 +94,33 @@ namespace Tuitter_API.Controllers
             {
                 return BadRequest("Failed to add post");
             }
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> DeletePost(int id)
+        {
+            var userId = await _loggedUserService.GetLoggedUserId(User);
+
+            var post = await _postRepository.GetSinglePost(id);
+
+            if(post == null)
+            {
+                return BadRequest("Cannot find the post");
+
+            }
+
+            if (post.UserId == userId)
+            {
+                _postRepository.DeletePost(post);
+            }
+            else
+            {
+                return BadRequest("Cannot delete someones else post");
+            }
+
+            if (await _postRepository.SaveAllAsync()) return Ok("Post deleted successfully");
+
+            return BadRequest("Problem deleting the post");
         }
     }
 }
