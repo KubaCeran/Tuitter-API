@@ -17,27 +17,22 @@ namespace Tuitter_API.Controllers
         }
 
         [HttpPost("register")]
-        [ProducesResponseType(typeof(ServiceResult), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<ServiceResult>> Register([FromBody] RegisterDto registerDto)
+        public async Task<ActionResult<RegisterResultDto>> Register([FromBody] RegisterDto registerDto)
         {
-            return await MethodWrapper(async () =>
-            {
-                return await _userService.RegisterUser(registerDto);
-            });
+            var response = await _userService.RegisterUser(registerDto);
+            if(response.IsError)
+                return BadRequest(response.ResponseMsg);
+            return Ok(response.ResponseMsg);
         }
 
         [HttpPost("login")]
-        [ProducesResponseType(typeof(ServiceResult), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<ServiceResult>> Login([FromBody] RegisterDto registerDto)
+        public async Task<ActionResult<LoginResultDto>> Login([FromBody] RegisterDto registerDto)
         {
-            return await MethodWrapper(async () =>
-            {
-                return await _userService.LoginUser(registerDto);
-            });
+        
+            var response = await _userService.LoginUser(registerDto);
+            if (response.IsError)
+                return BadRequest(response.ResponseMsg);
+            return Ok(response);
         }
     }
 }

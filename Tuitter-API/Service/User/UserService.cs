@@ -1,18 +1,18 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Tuitter_API.Repository.User;
-using Tuitter_API.Service.User;
 
 namespace Tuitter_API.Service;
 
     public interface IUserService
     {
-        Task<ServiceResult> RegisterUser(RegisterDto registerDto);
-        Task<ServiceResult> LoginUser(RegisterDto registerDto);
+        Task<RegisterResultDto> RegisterUser(RegisterDto registerDto);
+        Task<LoginResultDto> LoginUser(RegisterDto registerDto);
 
 }
 public class UserService : IUserService
@@ -27,37 +27,46 @@ public class UserService : IUserService
             _authOptions = authOptions;
         }
 
-        public async Task<ServiceResult> LoginUser(RegisterDto registerDto)
+        public async Task<LoginResultDto> LoginUser(RegisterDto registerDto)
         {
             var user = await _userManager.FindByNameAsync(registerDto.Username);
             if (user != null && await _userManager.CheckPasswordAsync(user, registerDto.Password))
             {
                 var authClaims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.Name, user.UserName),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-                };
+                    {
+                        new Claim(ClaimTypes.Name, user.UserName),
+                        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                    };
                 var token = GetToken(authClaims);
 
                 var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
-                return ServiceResult<LoginResult>.WithSuccess(new LoginResult
+                return new LoginResultDto
                 {
                     Token = tokenString,
                     Username = user.UserName,
-                    ExpiresAt = token.ValidTo
-                });
+                    ExpiresAt = token.ValidTo,
+                    IsError = false,
+                    ResponseMsg = "User logged in successfully!"
+                };
             }
-
-            return ServiceResult.WithErrors("Username or password incorrect");
+            return new LoginResultDto
+            {
+                IsError = true,
+                ResponseMsg = "Incorrect username or password!"
+            };
         }
 
-        public async Task<ServiceResult> RegisterUser(RegisterDto registerDto)
+        public async Task<RegisterResultDto> RegisterUser(RegisterDto registerDto)
         {
             var userExists = await _userManager.FindByNameAsync(registerDto.Username);
             if(userExists != null)
             {
-                return ServiceResult.WithErrors("Username taken");
+                return new RegisterResultDto 
+                { 
+                    IsError = true, 
+                    ResponseMsg = "Username taken!" 
+                };
             }
 
             var user = new Data.Entities.User()
@@ -67,14 +76,22 @@ public class UserService : IUserService
             };
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);
-            if(result.Succeeded)
+            var errorList = result.Errors.Select(x => x.Description).ToList();
+            if (result.Succeeded)
             {
-                return ServiceResult.WithSuccess();
+                return new RegisterResultDto
+                {
+                    IsError = false,
+                    ResponseMsg = "User created!"
+                };
             }
             else
             {
-                var errors = result.Errors.Select(x => x.Description).ToArray();
-                return ServiceResult.WithErrors(errors);
+                return new RegisterResultDto
+                {
+                    IsError = true,
+                    ResponseMsg = String.Join(' ', errorList)
+                };
             }
         }
     private JwtSecurityToken GetToken(IList<Claim> authClaims)
