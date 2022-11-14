@@ -6,7 +6,7 @@ namespace Tuitter_API.Extensions
     {
         public static IServiceCollection RegisterApplicationServices(this IServiceCollection services)
         {
-            services.AddScoped<IUserService, UserSevice>();
+            services.AddScoped<IUserService, UserService>();
 
             return services;
         }

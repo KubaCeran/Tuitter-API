@@ -13,13 +13,14 @@ namespace Tuitter_API.Service;
     {
         Task<ServiceResult> RegisterUser(RegisterDto registerDto);
         Task<ServiceResult> LoginUser(RegisterDto registerDto);
-    }
-    public class UserSevice : IUserService
+
+}
+public class UserService : IUserService
     {
         private readonly UserManager<Data.Entities.User> _userManager;
         private readonly IOptions<AuthConfiguration> _authOptions;
 
-        public UserSevice(UserManager<Data.Entities.User> userManager,
+        public UserService(UserManager<Data.Entities.User> userManager,
         IOptions<AuthConfiguration> authOptions)
         {
             _userManager = userManager;
