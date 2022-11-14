@@ -1,10 +1,12 @@
-﻿namespace Tuitter_API.Extensions
+﻿using Tuitter_API.Service;
+
+namespace Tuitter_API.Extensions
 {
     public static class ApplicationServiceExtensions
     {
         public static IServiceCollection RegisterApplicationServices(this IServiceCollection services)
         {
-            /*services.AddScoped<>();*/
+            services.AddScoped<IUserService, UserSevice>();
 
             return services;
         }
