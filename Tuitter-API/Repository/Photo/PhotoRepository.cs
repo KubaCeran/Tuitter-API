@@ -12,6 +12,7 @@ namespace Tuitter_API.Repository.Photo
         Task<SetPhotoResponse> DeleteImage(int userId, int photoId);
         Task<SetPhotoResponse> SetProfilePicture(int userId, int photoId);
         Task<Data.Entities.Photo> GetImageById(int photoId);
+        Task<List<PhotoDto>> GetListOfPhotoInfoForUser(int userId);
     }
     public class PhotoRepository : IPhotoRepository
     {
@@ -64,6 +65,23 @@ namespace Tuitter_API.Repository.Photo
         {
             var photo = await _dataContext.Photos.FirstOrDefaultAsync(x => x.Id == photoId);
             return photo;
+        }
+
+        public async Task<List<PhotoDto>> GetListOfPhotoInfoForUser(int userId)
+        {
+            var photos = await _dataContext.Photos.Where(x => x.UserId == userId).ToListAsync();
+
+            var photoList = new List<PhotoDto>();
+
+            foreach (var photo in photos)
+                photoList.Add(new PhotoDto
+                {
+                    UserId = photo.UserId,
+                    PhotoId = photo.Id,
+                    FileName = photo.PhotoName,
+                    IsProfilePicture = photo.IsProfilePicture
+                });
+            return photoList;
         }
 
         public async Task<SetPhotoResponse> SetProfilePicture(int userId, int photoId)

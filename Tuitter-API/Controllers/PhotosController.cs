@@ -64,6 +64,18 @@ public class PhotosController : BaseApiController
 
         return NotFound("Photo not found");
     }
+    [HttpGet("user/{userId}")]
+    [AllowAnonymous]
+    public async Task<ActionResult<List<PhotoDto>>> GetListOfPhotosForUser(int userId)
+    {
+        var photoList = await _photoRepository.GetListOfPhotoInfoForUser(userId);
+
+        if (photoList.Count > 0)
+        {
+            return Ok(photoList);
+        }
+        return NotFound("No photos for user");
+    }
 
     [HttpGet("info/{photoId}")]
     [AllowAnonymous]
