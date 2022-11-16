@@ -39,6 +39,7 @@ builder.Services.AddSwaggerGen(c => {
             new string[] {}
         }
     });
+    c.OperationFilter<SwaggerFileOperationFilter>();
 });
 
 builder.Services.RegisterDataContext(builder.Configuration);
