@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Tuitter_API.Data.DataContext;
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
@@ -9,8 +10,8 @@ namespace Tuitter_API.Repository.Photo
     {
         Task<bool> AddImage(int userId, bool isProfilePicture, IFormFile phot);
         Task<SetPhotoResponse> DeleteImage(int userId, int photoId);
-        Task<List<PhotoDto>> GetAllImagesForUser(int userId);
         Task<SetPhotoResponse> SetProfilePicture(int userId, int photoId);
+        Task<Data.Entities.Photo> GetImageById(int photoId);
     }
     public class PhotoRepository : IPhotoRepository
     {
@@ -59,26 +60,10 @@ namespace Tuitter_API.Repository.Photo
             return new SetPhotoResponse { IsError = false, Message = "Photo deleted successfuly" };
         }
 
-        public async Task<List<PhotoDto>> GetAllImagesForUser(int userId)
+        public async Task<Data.Entities.Photo> GetImageById(int photoId)
         {
-            var photos = await _dataContext.Photos.Where(x => x.UserId == userId).ToListAsync();
-
-            var listPhotoDto = new List<PhotoDto>();
-            foreach(var photo in photos)
-            {
-                Byte[] b = File.ReadAllBytes(photo.PhotoPath);
-                var file = new FileContentResult(b, "Image/" + photo.PhotoName.Split('.').Last());
-                listPhotoDto.Add(new PhotoDto
-                {
-                    UserId = photo.UserId,
-                    PhotoId = photo.Id,
-                    FileName = photo.PhotoName,
-                    ContentType = file.ContentType,
-                    IsProfilePicture = photo.IsProfilePicture,
-                    FileContent = file.FileContents
-                });
-            }
-            return listPhotoDto;
+            var photo = await _dataContext.Photos.FirstOrDefaultAsync(x => x.Id == photoId);
+            return photo;
         }
 
         public async Task<SetPhotoResponse> SetProfilePicture(int userId, int photoId)

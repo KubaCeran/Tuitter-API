@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.StaticFiles;
 using Tuitter_API.Repository.Photo;
 using Tuitter_API.Service.User;
 
@@ -47,16 +48,40 @@ public class PhotosController : BaseApiController
         return Ok(response.Message);
     }
 
-    [HttpGet("user/{userId}")]
+
+    [HttpGet("{photoId}")]
     [AllowAnonymous]
-    public async Task<ActionResult<List<PhotoDto>>> GetPhotosForUser(int userId)
+    public async Task<ActionResult> GetPhotoById(int photoId)
     {
+        var photo = await _photoRepository.GetImageById(photoId);
 
-        var listPhotoDto = await _photoRepository.GetAllImagesForUser(userId);
+        if(photo != null)
+        {
+            var fileBytes = System.IO.File.ReadAllBytes(photo.PhotoPath);
+            new FileExtensionContentTypeProvider().TryGetContentType(Path.GetFileName(photo.PhotoPath), out var contentType);
+            return new FileContentResult(fileBytes, contentType ?? "image");
+        };
 
-        if (listPhotoDto == null || listPhotoDto.Count() == 0)
-            return BadRequest("No photos found");
-        return Ok(listPhotoDto);
+        return NotFound("Photo not found");
+    }
+
+    [HttpGet("info/{photoId}")]
+    [AllowAnonymous]
+    public async Task<ActionResult<PhotoDto>> GetPhotoInfoById(int photoId)
+    {
+        var photo = await _photoRepository.GetImageById(photoId);
+        if (photo != null)
+        {
+            return new PhotoDto
+            {
+                UserId = photo.UserId,
+                PhotoId = photo.Id,
+                FileName = photo.PhotoName,
+                IsProfilePicture = photo.IsProfilePicture,
+            };
+        };
+
+        return NotFound("Photo not found");
     }
 
     [HttpPut("set-profile-picture")]
