@@ -1,0 +1,22 @@
+1. Set startup project to Tuitter-API
+2. Open PMC (Tools > NuGet Package Manager > Package Manager Console)
+3. In PMC set Default project to "src\Web\Tuitter-API"
+
+4. Copy one or several of the following commands as needed.
+
+4.1. Adding new migration (eg. after adding or updating some entity models) (you don't need to run this command when models are already up to date):
+	Add-Migration <MigrationName> -Context TuitterContext -Project Infrastructure
+
+4.2. Executing migration (eg. after updating models or when you just want to setup database for development):
+	Update-Database
+
+4.3. Remove last migration from code and database (rollback):
+	Remove-Migration -Context TuitterContext -Project Infrastructure -Force
+
+Important Note:
+There seems to be some conflict between EntityFrameworkCore and EntityFramework6. The commands above are adapted for EntityFrameworkCore.
+
+To ensure that they will be called on this library before each command, add 'EntityFrameworkCore\'.
+
+For example:
+	EntityFrameworkCore\Update-Database

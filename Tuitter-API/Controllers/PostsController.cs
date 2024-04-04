@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Core.DTOs.Posts;
+using Core.Entities;
+using Infrastructure.Repositories.Categories;
+using Infrastructure.Repositories.Posts;
+using Infrastructure.Services.Users;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Tuitter_API.Data.Entities;
-using Tuitter_API.Repository.Categories;
-using Tuitter_API.Repository.Post;
-using Tuitter_API.Service;
-using Tuitter_API.Service.User;
 
 namespace Tuitter_API.Controllers
 {

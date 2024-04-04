@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Core.DTOs.Users;
+using Core.DTOs.Users.Login;
+using Core.DTOs.Users.Register;
+using Infrastructure.Repositories.Posts;
+using Infrastructure.Services.Users;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Net.Mime;
-using Tuitter_API.Repository.Post;
-using Tuitter_API.Repository.User;
-using Tuitter_API.Service;
 
 namespace Tuitter_API.Controllers
 {
@@ -23,7 +24,7 @@ namespace Tuitter_API.Controllers
         public async Task<ActionResult<RegisterResultDto>> Register([FromBody] RegisterDto registerDto)
         {
             var response = await _userService.RegisterUser(registerDto);
-            if(response.IsError)
+            if (response.IsError)
                 return BadRequest(response.ResponseMsg);
             return Ok(response.ResponseMsg);
         }
@@ -31,7 +32,7 @@ namespace Tuitter_API.Controllers
         [HttpPost("login")]
         public async Task<ActionResult<LoginResultDto>> Login([FromBody] RegisterDto registerDto)
         {
-        
+
             var response = await _userService.LoginUser(registerDto);
             if (response.IsError)
                 return BadRequest(response.ResponseMsg);
@@ -39,14 +40,13 @@ namespace Tuitter_API.Controllers
         }
 
         [HttpGet("{id}")]
-        [AllowAnonymous]
         public async Task<ActionResult<UserDto>> GetUserById(int id)
         {
             var user = await _userService.GetUserById(id);
             var usersPosts = await _postRepository.GetAllPostsForUser(id);
 
             var userDto = new UserDto { UserId = user.Id, Username = user.UserName, Posts = usersPosts };
-            
+
             return Ok(userDto);
         }
     }

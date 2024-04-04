@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Tuitter_API.Service;
 
 namespace Tuitter_API.Controllers
 {
@@ -9,6 +8,5 @@ namespace Tuitter_API.Controllers
     [Authorize]
     public class BaseApiController : ControllerBase
     {
-        
     }
 }

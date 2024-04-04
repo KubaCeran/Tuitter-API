@@ -1,8 +1,6 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿/*using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
-using Tuitter_API.Repository.Photo;
-using Tuitter_API.Service.User;
 
 namespace Tuitter_API.Controllers;
 
@@ -24,7 +22,7 @@ public class PhotosController : BaseApiController
             {
                 return BadRequest("File not selected");
             }
-        
+
         var userId = await _loggedUserService.GetLoggedUserId(User);
 
         if(!await _photoRepository.AddImage(userId, isProfilePicture, photo))
@@ -109,3 +107,4 @@ public class PhotosController : BaseApiController
     }
 }
 
+*/

@@ -1,7 +1,9 @@
+using Core.Entities;
+using Infrastructure.DataContext;
+using Infrastructure.Extensions;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using Tuitter_API.Data.DataContext;
-using Tuitter_API.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,7 +15,8 @@ builder.Services.AddControllers(options =>
 });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c => {
+builder.Services.AddSwaggerGen(c =>
+{
     c.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "JWTToken_Auth_API",
@@ -44,6 +47,7 @@ builder.Services.AddSwaggerGen(c => {
 
 builder.Services.RegisterDataContext(builder.Configuration);
 builder.Services.AddIdentityServices(builder.Configuration);
+
 builder.Services.RegisterRepositories();
 builder.Services.RegisterApplicationServices();
 
@@ -63,12 +67,6 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-}
-
-using (var scope = app.Services.CreateScope())
-{
-    var dataContext = scope.ServiceProvider.GetRequiredService<DataContext>();
-    dataContext.Database.Migrate();
 }
 
 app.UseCors(AllowAll);
