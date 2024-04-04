@@ -3,7 +3,6 @@ using Infrastructure.Repositories.Posts;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Infrastructure.Extensions
-
 {
     public static class RepositoryExtensions
     {

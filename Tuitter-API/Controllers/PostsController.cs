@@ -1,107 +1,58 @@
 ﻿using Core.DTOs.Posts;
-using Core.Entities;
 using Infrastructure.Repositories.Categories;
 using Infrastructure.Repositories.Posts;
+using Infrastructure.Services.Posts;
 using Infrastructure.Services.Users;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Tuitter_API.Controllers
 {
-    public class PostsController : BaseApiController
+    public class PostsController(
+        IPostRepository postRepository,
+        ICategoryRepository categoryRepository,
+        ILoggedUserService loggedUserService,
+        IUserService userService,
+        IPostService postService) : BaseApiController
     {
-        private readonly ILoggedUserService _loggedUserService;
-        private readonly IUserService _userService;
-        private readonly IPostRepository _postRepository;
-        private readonly ICategoryRepository _categoryRepository;
-
-        public PostsController(IPostRepository postRepository, ICategoryRepository categoryRepository, ILoggedUserService loggedUserService, IUserService userService)
-        {
-            _postRepository = postRepository;
-            _categoryRepository = categoryRepository;
-            _loggedUserService = loggedUserService;
-            _userService = userService;
-        }
-
         [HttpGet("all")]
         [AllowAnonymous]
-        public async Task<ActionResult<List<PostDto>>> GetAllPosts()
+        public ActionResult<IEnumerable<PostDto>> GetAllPosts()
         {
-
-            var posts = await  _postRepository.GetAllPosts();
-            if (posts.Count() == 0)
-                return BadRequest("Nobody created post yet");
+            var posts =  postService.GetAllPosts();
             return Ok(posts);
         }
 
-        [HttpGet("user/{id}")]
+        [HttpGet("user/{userId}")]
         [AllowAnonymous]
-        public async Task<ActionResult<List<PostDto>>> GetAllPostsForUser(int id)
+        public ActionResult<IEnumerable<PostDto>> GetAllPostsForUser(int userId)
         {
-            var posts = await _postRepository.GetAllPostsForUser(id);
-            if (posts.Count() == 0)
-                return BadRequest("No posts found");
+            var posts = postService.GetAllPostsForUser(userId);
             return Ok(posts);
         }
 
-        [HttpGet("category/{id}")]
+        [HttpGet("category/{categoryName}")]
         [AllowAnonymous]
-        public async Task<ActionResult<List<PostDto>>> GetAllPostsForCategory(int id)
+        public ActionResult<IEnumerable<PostDto>> GetAllPostsForCategory(string categoryName)
         {
-            var posts = await _postRepository.GetAllPostsForCategory(id);
-            if (posts.Count() == 0)
-                return BadRequest("No posts found");
+            var posts = postService.GetAllPostsForCategory(categoryName);
             return Ok(posts);
         }
 
         [HttpPost("add")]
         public async Task<ActionResult<PostDto>> CreatePost([FromBody] CreatePostDto postInput)
         {
-            var userId = await _loggedUserService.GetLoggedUserId(User);
-            var category = await _categoryRepository.FindCategoryByName(postInput.CategoryName);
-
-            var post = new Post();
-
-            if (category == null)
-            {
-                post.Body = postInput.Body;
-                post.Headline = postInput.Headline;
-                post.Category = new Category { Title = postInput.CategoryName };
-                post.UserId = userId;
-            }
-            else
-            {
-                post.Body = postInput.Body;
-                post.Headline = postInput.Headline;
-                post.Category = category;
-                post.UserId = userId;
-            }
-            _postRepository.AddPost(post);
-
-            if (await _postRepository.SaveAllAsync())
-            {
-                return Ok(new PostDto
-                {
-                    PostId = post.Id,
-                    Body = post.Body,
-                    CategoryName = post.Category.Title,
-                    CreatedAt = post.CreationTime,
-                    UserId = post.UserId,
-                    Headline = post.Headline
-                });
-            }
-            else
-            {
-                return BadRequest("Failed to add post");
-            }
+            var userId = await loggedUserService.GetLoggedUserId(User);
+            await postService.AddPost(postInput, userId);
+            return Ok();
         }
 
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeletePost(int id)
         {
-            var userId = await _loggedUserService.GetLoggedUserId(User);
+            var userId = await loggedUserService.GetLoggedUserId(User);
 
-            var post = await _postRepository.GetSinglePost(id);
+            var post = await postRepository.GetSinglePost(id);
 
             if(post == null)
             {
@@ -111,16 +62,16 @@ namespace Tuitter_API.Controllers
 
             if (post.UserId == userId)
             {
-                _postRepository.DeletePost(post);
+                postRepository.DeletePost(post);
             }
             else
             {
                 return BadRequest("Cannot delete someones else post");
             }
 
-            if (await _postRepository.SaveAllAsync()) return Ok("Post deleted successfully");
+            return Ok("Post deleted successfully");
 
-            return BadRequest("Problem deleting the post");
+           //return BadRequest("Problem deleting the post");
         }
     }
 }

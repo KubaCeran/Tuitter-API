@@ -10,9 +10,7 @@ namespace Infrastructure.DataContext.Mappings
         {
             builder.HasKey(x => x.Id);
             builder.Property(x => x.Id).UseIdentityColumn().IsRequired();
-
             builder.Property(x => x.Title).HasMaxLength(20).IsRequired();
-
         }
     }
 }

@@ -7,5 +7,6 @@ namespace Core.Entities
         public DateTime LastLoginDate { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public bool IsDeleted { get; set; } = false;
+        public ICollection<Post> Posts { get; set; } = new List<Post>();
     }
 }

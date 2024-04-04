@@ -180,11 +180,10 @@ namespace Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Headline = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     Body = table.Column<string>(type: "nvarchar(120)", maxLength: 120, nullable: false),
-                    CreationTime = table.Column<DateTime>(type: "datetime2", nullable: false, computedColumnSql: "GetUtcDate()"),
+                    CreationTime = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UserId = table.Column<int>(type: "int", nullable: false),
-                    CategoryId = table.Column<int>(type: "int", nullable: false)
+                    ParentPostId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -196,9 +195,32 @@ namespace Infrastructure.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Posts_Categories_CategoryId",
-                        column: x => x.CategoryId,
+                        name: "FK_Posts_Posts_ParentPostId",
+                        column: x => x.ParentPostId,
+                        principalTable: "Posts",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CategoryPost",
+                columns: table => new
+                {
+                    CategoriesId = table.Column<int>(type: "int", nullable: false),
+                    PostsId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CategoryPost", x => new { x.CategoriesId, x.PostsId });
+                    table.ForeignKey(
+                        name: "FK_CategoryPost_Categories_CategoriesId",
+                        column: x => x.CategoriesId,
                         principalTable: "Categories",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CategoryPost_Posts_PostsId",
+                        column: x => x.PostsId,
+                        principalTable: "Posts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -243,9 +265,14 @@ namespace Infrastructure.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Posts_CategoryId",
+                name: "IX_CategoryPost_PostsId",
+                table: "CategoryPost",
+                column: "PostsId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Posts_ParentPostId",
                 table: "Posts",
-                column: "CategoryId");
+                column: "ParentPostId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Posts_UserId",
@@ -272,16 +299,19 @@ namespace Infrastructure.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "Posts");
+                name: "CategoryPost");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
-                name: "AspNetUsers");
+                name: "Categories");
 
             migrationBuilder.DropTable(
-                name: "Categories");
+                name: "Posts");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUsers");
         }
     }
 }

@@ -43,9 +43,9 @@ namespace Tuitter_API.Controllers
         public async Task<ActionResult<UserDto>> GetUserById(int id)
         {
             var user = await _userService.GetUserById(id);
-            var usersPosts = await _postRepository.GetAllPostsForUser(id);
+            //var usersPosts = await _postRepository.GetAllPostsForUser(id);
 
-            var userDto = new UserDto { UserId = user.Id, Username = user.UserName, Posts = usersPosts };
+            var userDto = new UserDto { UserId = user.Id, Username = user.UserName, /*Posts = usersPosts */};
 
             return Ok(userDto);
         }

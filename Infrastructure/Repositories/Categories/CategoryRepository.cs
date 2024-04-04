@@ -3,22 +3,23 @@ using Infrastructure.DataContext;
 
 namespace Infrastructure.Repositories.Categories
 {
-    public interface ICategoryRepository
+    public class CategoryRepository(TuitterContext context) : ICategoryRepository
     {
-        Task<Category> FindCategoryByName(string categoryName);
-    }
-    public class CategoryRepository : ICategoryRepository
-    {
-        private readonly TuitterContext _context;
-
-        public CategoryRepository(TuitterContext context)
+        public IEnumerable<Category> FindCategoryByName(IEnumerable<string> categoriesNames)
         {
-            _context = context;
-        }
+            var result = new List<Category>();
+            foreach (var category in categoriesNames)
+            {
+                var cat = context.Categories.FirstOrDefault(x => x.Title.ToLower() == category.ToLower());
 
-        public async Task<Category> FindCategoryByName(string categoryName)
-        {
-            return _context.Categories.SingleOrDefault(x => x.Title == categoryName);
+                if (cat is null)
+                {
+                    cat = new Category { Title = category };
+                    context.Categories.Add(cat);
+                    context.SaveChanges();
+                }
+                yield return cat;
+            }
         }
     }
 }

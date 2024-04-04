@@ -1,14 +1,16 @@
-﻿namespace Core.Entities
+﻿using Core.Entities.Base;
+
+namespace Core.Entities
 {
-    public class Post
+    public class Post : EntityBase
     {
-        public int Id { get; set; }
-        public string Headline { get; set; }
-        public string Body { get; set; }
-        public DateTime CreationTime { get; set; } = DateTime.Now;
-        public User User { get; set; }
+        public string Body { get; set; } = null!;
+        public DateTime CreationTime { get; set; } = DateTime.UtcNow;
+        public User User { get; set; } = null!;
         public int UserId { get; set; }
-        public Category Category { get; set; }
-        public int CategoryId { get; set; }
+        public Post? ParentPost { get; set; }
+        public int? ParentPostId { get; set; }
+        public ICollection<Post> Replies { get; set; } = new List<Post>();
+        public ICollection<Category> Categories { get; set; } = new List<Category>();
     }
 }

@@ -8,8 +8,7 @@ namespace Infrastructure.DataContext.Mappings
     {
         public void Configure(EntityTypeBuilder<User> builder)
         {
-            builder.Property(x => x.IsDeleted).IsRequired().HasDefaultValue(false);
-            builder.Property(x => x.CreatedAt).HasComputedColumnSql("GetUtcDate()");
+            builder.Property(x => x.IsDeleted).IsRequired();
         }
     }
 }

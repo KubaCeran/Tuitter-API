@@ -1,6 +1,7 @@
 ﻿using Core.DTOs.Options.Auth;
 using Core.DTOs.Users.Login;
 using Core.DTOs.Users.Register;
+using Core.Entities;
 using Infrastructure.DataContext;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
@@ -11,41 +12,21 @@ using System.Text;
 
 namespace Infrastructure.Services.Users;
 
-public interface IUserService
+public class UserService(
+    UserManager<User> userManager,
+    RoleManager<IdentityRole<int>> roleManager,
+    IOptions<AuthConfiguration> authOptions,
+    TuitterContext dataContext) : IUserService
 {
-    Task<RegisterResultDto> RegisterUser(RegisterDto registerDto);
-    Task<LoginResultDto> LoginUser(RegisterDto registerDto);
-    Task<Core.Entities.User> GetUserById(int id);
-
-}
-public class UserService : IUserService
-{
-    private readonly UserManager<Core.Entities.User> _userManager;
-    private readonly RoleManager<IdentityRole<int>> _roleManager;
-    private readonly IOptions<AuthConfiguration> _authOptions;
-    private readonly TuitterContext _dataContext;
-
-    public UserService(
-        UserManager<Core.Entities.User> userManager,
-        RoleManager<IdentityRole<int>> roleManager,
-        IOptions<AuthConfiguration> authOptions,
-        TuitterContext dataContext)
+    public async Task<User> GetUserById(int id)
     {
-        _userManager = userManager;
-        _roleManager = roleManager;
-        _authOptions = authOptions;
-        _dataContext = dataContext;
-    }
-
-    public async Task<Core.Entities.User> GetUserById(int id)
-    {
-        return await _dataContext.Users.FindAsync(id);
+        return await dataContext.Users.FindAsync(id);
     }
 
     public async Task<LoginResultDto> LoginUser(RegisterDto registerDto)
     {
-        var user = await _userManager.FindByNameAsync(registerDto.Username);
-        if (user != null && await _userManager.CheckPasswordAsync(user, registerDto.Password))
+        var user = await userManager.FindByNameAsync(registerDto.Username);
+        if (user != null && await userManager.CheckPasswordAsync(user, registerDto.Password))
         {
             var authClaims = new List<Claim>
                     {
@@ -57,7 +38,7 @@ public class UserService : IUserService
             var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
             user.LastLoginDate = DateTime.UtcNow;
-            await _userManager.UpdateAsync(user);
+            await userManager.UpdateAsync(user);
 
             return new LoginResultDto
             {
@@ -77,7 +58,7 @@ public class UserService : IUserService
 
     public async Task<RegisterResultDto> RegisterUser(RegisterDto registerDto)
     {
-        var userExists = await _userManager.FindByNameAsync(registerDto.Username);
+        var userExists = await userManager.FindByNameAsync(registerDto.Username);
         if (userExists != null)
         {
             return new RegisterResultDto
@@ -87,17 +68,17 @@ public class UserService : IUserService
             };
         }
 
-        var user = new Core.Entities.User()
+        var user = new User()
         {
             UserName = registerDto.Username,
             Email = registerDto.Email,
             SecurityStamp = Guid.NewGuid().ToString(),
         };
 
-        var result = await _userManager.CreateAsync(user, registerDto.Password);
+        var result = await userManager.CreateAsync(user, registerDto.Password);
         var userRole = registerDto.UserRole.ToString();
-        await _roleManager.CreateAsync(new IdentityRole<int> { Name =  userRole});
-        await _userManager.AddToRoleAsync(user, userRole);
+        await roleManager.CreateAsync(new IdentityRole<int> { Name =  userRole});
+        await userManager.AddToRoleAsync(user, userRole);
         var errorList = result.Errors.Select(x => x.Description).ToList();
         if (result.Succeeded)
         {
@@ -118,11 +99,11 @@ public class UserService : IUserService
     }
     private JwtSecurityToken GetToken(IList<Claim> authClaims)
     {
-        var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_authOptions.Value.Secret));
+        var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authOptions.Value.Secret));
 
         return new JwtSecurityToken(
-            issuer: _authOptions.Value.ValidIssuer,
-            audience: _authOptions.Value.ValidAudience,
+            issuer: authOptions.Value.ValidIssuer,
+            audience: authOptions.Value.ValidAudience,
             expires: DateTime.Now.AddHours(3),
             claims: authClaims,
             signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
