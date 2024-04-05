@@ -1,4 +1,4 @@
-﻿namespace Core.DTOs.Options.Auth
+﻿namespace Core.Options.Auth
 {
     public class AuthConfiguration
     {

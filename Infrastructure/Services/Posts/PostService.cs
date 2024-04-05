@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Core.DTOs.Posts;
 using Core.Entities;
+using Core.Options.Pagination;
 using Infrastructure.Middlewares.Exceptions;
 using Infrastructure.Repositories.Categories;
 using Infrastructure.Repositories.Posts;
@@ -34,26 +35,29 @@ namespace Infrastructure.Services.Posts
                 throw new ForbiddenException("Cannot delete someones else post");
         }
 
-        public IEnumerable<PostDto> GetAllPostsByParentId(int? parentPostId)
+        public PagedList<PostDto> GetAllPostsByParentId(PaginationOptions paginationOptions, int? parentPostId)
         {
             var postsQuery = postRepository
                 .GetAllPostsWithCategoriesAndReplies()
                 .Where(x => x.ParentPostId == parentPostId)
                 .OrderBy(x => x.CreationTime);
 
-            return mapper.ProjectTo<PostDto>(postsQuery);
+            var posts = mapper.ProjectTo<PostDto>(postsQuery);
+            return PagedList<PostDto>.Create(posts, paginationOptions);
         }
 
-        public IEnumerable<PostDto> GetAllPostsForCategory(string categoryName)
+        public PagedList<PostDto> GetAllPostsForCategory(PaginationOptions paginationOptions, string categoryName)
         {
             var postsQuery = postRepository.GetAllPostsByCategoryName(categoryName).OrderBy(x => x.CreationTime);
-            return mapper.ProjectTo<PostDto>(postsQuery);
+            var posts = mapper.ProjectTo<PostDto>(postsQuery);
+            return PagedList<PostDto>.Create(posts, paginationOptions);
         }
 
-        public IEnumerable<PostDto> GetAllPostsForUser(int userId)
+        public PagedList<PostDto> GetAllPostsForUser(PaginationOptions paginationOptions, int userId)
         {
             var postsQuery = postRepository.GetAllPostsByUserId(userId).OrderBy(x => x.CreationTime);
-            return mapper.ProjectTo<PostDto>(postsQuery);
+            var posts = mapper.ProjectTo<PostDto>(postsQuery);
+            return PagedList<PostDto>.Create(posts, paginationOptions);
         }
 
         private async Task ValidatePostDto(CreatePostDto postDto, CancellationToken cancellationToken)

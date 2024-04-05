@@ -1,4 +1,5 @@
 ﻿using Core.DTOs.Posts;
+using Core.Options.Pagination;
 
 namespace Infrastructure.Services.Posts
 {
@@ -6,8 +7,8 @@ namespace Infrastructure.Services.Posts
     {
         Task AddPost(CreatePostDto postDto, int userId, CancellationToken cancellationToken);
         Task DeletePost(int postId, int userId, CancellationToken cancellationToken);
-        IEnumerable<PostDto> GetAllPostsForCategory(string categoryName);
-        IEnumerable<PostDto> GetAllPostsByParentId(int? ParentPostId);
-        IEnumerable<PostDto> GetAllPostsForUser(int userId);
+        PagedList<PostDto> GetAllPostsForCategory(PaginationOptions paginationOptions, string categoryName);
+        PagedList<PostDto> GetAllPostsByParentId(PaginationOptions paginationOptions, int? ParentPostId);
+        PagedList<PostDto> GetAllPostsForUser(PaginationOptions paginationOptions, int userId);
     }
 }

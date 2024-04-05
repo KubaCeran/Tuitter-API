@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
-using Core.DTOs.Options.Auth;
 using Core.DTOs.Posts;
 using Core.DTOs.Users;
 using Core.DTOs.Users.Login;
 using Core.DTOs.Users.Register;
 using Core.Entities;
+using Core.Options.Auth;
 using Infrastructure.Middlewares.Exceptions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;

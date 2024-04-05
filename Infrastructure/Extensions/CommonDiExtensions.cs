@@ -1,5 +1,5 @@
-﻿using Core.DTOs.Options.Auth;
-using Core.Entities;
+﻿using Core.Entities;
+using Core.Options.Auth;
 using Infrastructure.DataContext;
 using Infrastructure.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
