@@ -1,6 +1,4 @@
 ﻿using Core.DTOs.Posts;
-using Infrastructure.Repositories.Categories;
-using Infrastructure.Repositories.Posts;
 using Infrastructure.Services.Posts;
 using Infrastructure.Services.Users;
 using Microsoft.AspNetCore.Authorization;
@@ -9,10 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Tuitter_API.Controllers
 {
     public class PostsController(
-        IPostRepository postRepository,
-        ICategoryRepository categoryRepository,
         ILoggedUserService loggedUserService,
-        IUserService userService,
         IPostService postService) : BaseApiController
     {
         [HttpGet("all")]
@@ -40,38 +35,19 @@ namespace Tuitter_API.Controllers
         }
 
         [HttpPost("add")]
-        public async Task<ActionResult<PostDto>> CreatePost([FromBody] CreatePostDto postInput)
+        public async Task<ActionResult<PostDto>> CreatePost([FromBody] CreatePostDto postInput, CancellationToken cancellationToken)
         {
             var userId = await loggedUserService.GetLoggedUserId(User);
-            await postService.AddPost(postInput, userId);
+            await postService.AddPost(postInput, userId, cancellationToken);
             return Ok();
         }
 
-        [HttpDelete("{id}")]
-        public async Task<ActionResult> DeletePost(int id)
+        [HttpDelete("{postId}")]
+        public async Task<IActionResult> DeletePost(int postId, CancellationToken cancellationToken)
         {
             var userId = await loggedUserService.GetLoggedUserId(User);
-
-            var post = await postRepository.GetSinglePost(id);
-
-            if(post == null)
-            {
-                return BadRequest("Cannot find the post");
-
-            }
-
-            if (post.UserId == userId)
-            {
-                postRepository.DeletePost(post);
-            }
-            else
-            {
-                return BadRequest("Cannot delete someones else post");
-            }
-
-            return Ok("Post deleted successfully");
-
-           //return BadRequest("Problem deleting the post");
+            await postService.DeletePost(postId, userId, cancellationToken);
+            return Ok();
         }
     }
 }

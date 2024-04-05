@@ -1,14 +1,12 @@
 ﻿using Core.Entities;
+using Infrastructure.Repositories.Base;
 
 namespace Infrastructure.Repositories.Posts
 {
-    public interface IPostRepository
+    public interface IPostRepository : IBaseCrudAsyncRepository<Post>, IBaseCrudRepository<Post>
     {
-        Task AddPost(Post post);
-        Task DeletePost(Post post);
-        IQueryable<Post> GetAllPosts();
+        IQueryable<Post> GetAllPostsWithCategories();
         IQueryable<Post> GetAllPostsByUserId(int userId);
         IQueryable<Post> GetAllPostsByCategoryName(string categoryName);
-        Task<Post> GetSinglePost(int id);
     }
 }

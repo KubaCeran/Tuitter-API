@@ -1,14 +1,18 @@
 ﻿using Core.DTOs.Options.Auth;
 using Core.Entities;
 using Infrastructure.DataContext;
+using Infrastructure.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
+using Serilog.Core;
 using System.Text;
 
 namespace Infrastructure.Extensions
@@ -38,6 +42,19 @@ namespace Infrastructure.Extensions
 
             //Cors Configuration
             builder.Services.AddCors();
+
+            //Serilog Configuration
+            builder.Logging.ClearProviders();
+            var logger = new LoggerConfiguration()
+                .ReadFrom.Configuration(builder.Configuration)
+                .Enrich.FromLogContext()
+                .CreateLogger();
+            builder.Host.UseSerilog(logger);
+
+            //ExceptionsHandlingMiddleware
+            builder.Services.AddHttpLogging(o => { });
+            builder.Services.AddExceptionHandler<ExceptionsHandlingMiddleware>();
+            builder.Services.AddProblemDetails();
 
             return builder.Build();
         }

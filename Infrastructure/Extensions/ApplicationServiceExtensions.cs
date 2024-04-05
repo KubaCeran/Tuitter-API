@@ -12,6 +12,7 @@ namespace Infrastructure.Extensions
             services.AddTransient<ILoggedUserService, LoggedUserService>();
             services.AddScoped<IPostService, PostService>();
 
+
             return services;
         }
     }

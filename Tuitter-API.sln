@@ -13,9 +13,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastru
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Web", "Web", "{D5105D7C-2C31-4DA8-AA27-7755D6579E49}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{888B6DDF-FEA8-498F-A267-B289477BA55D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{888B6DDF-FEA8-498F-A267-B289477BA55D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core", "Core\Core.csproj", "{38F25C24-76AD-4B65-9AF6-0F6CD6538669}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "Core\Core.csproj", "{38F25C24-76AD-4B65-9AF6-0F6CD6538669}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
