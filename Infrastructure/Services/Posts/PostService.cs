@@ -14,7 +14,9 @@ namespace Infrastructure.Services.Posts
     {
         public async Task AddPost(CreatePostDto postDto, int userId, CancellationToken cancellationToken)
         {
-            var categories = categoryRepository.FindCategoryByName(postDto.Categories);
+            await ValidatePostDto(postDto, cancellationToken);
+
+            var categories = categoryRepository.FindCategoryByName(postDto.Categories!);
             var postEntity = mapper.Map<Post>(postDto);
 
             postEntity.UserId = userId;
@@ -32,9 +34,13 @@ namespace Infrastructure.Services.Posts
                 throw new ForbiddenException("Cannot delete someones else post");
         }
 
-        public IEnumerable<PostDto> GetAllPosts()
+        public IEnumerable<PostDto> GetAllPostsByParentId(int? parentPostId)
         {
-            var postsQuery = postRepository.GetAllPostsWithCategories().OrderBy(x => x.CreationTime);
+            var postsQuery = postRepository
+                .GetAllPostsWithCategoriesAndReplies()
+                .Where(x => x.ParentPostId == parentPostId)
+                .OrderBy(x => x.CreationTime);
+
             return mapper.ProjectTo<PostDto>(postsQuery);
         }
 
@@ -48,6 +54,18 @@ namespace Infrastructure.Services.Posts
         {
             var postsQuery = postRepository.GetAllPostsByUserId(userId).OrderBy(x => x.CreationTime);
             return mapper.ProjectTo<PostDto>(postsQuery);
+        }
+
+        private async Task ValidatePostDto(CreatePostDto postDto, CancellationToken cancellationToken)
+        {
+            if(postDto.ParentPostId is null && postDto.Categories is null)
+                throw new BadRequestException("No categories specified");
+
+            if(postDto.ParentPostId is not null)
+            {
+                await postRepository.GetByIdAsync(Convert.ToInt32(postDto.ParentPostId), false, cancellationToken); //throws if there is no parent post with given id
+                postDto.Categories = [];
+            }
         }
     }
 }

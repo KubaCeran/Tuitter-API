@@ -8,10 +8,9 @@ namespace Infrastructure.Repositories.Posts
     public class PostRepository(TuitterContext context) : BaseRepository<Post>(context), IPostRepository
     {
 
-
-        public IQueryable<Post> GetAllPostsWithCategories()
+        public IQueryable<Post> GetAllPostsWithCategoriesAndReplies()
         {
-            return context.Posts.Include(x => x.Categories);
+            return context.Posts.Include(x => x.Categories).Include(x => x.Replies);
         }
 
         public IQueryable<Post> GetAllPostsByCategoryName(string categoryName)

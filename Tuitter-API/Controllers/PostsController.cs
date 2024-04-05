@@ -12,9 +12,9 @@ namespace Tuitter_API.Controllers
     {
         [HttpGet("all")]
         [AllowAnonymous]
-        public ActionResult<IEnumerable<PostDto>> GetAllPosts()
+        public ActionResult<IEnumerable<PostDto>> GetAllPostsAtGivenLevel(int? parentPostId)
         {
-            var posts =  postService.GetAllPosts();
+            var posts =  postService.GetAllPostsByParentId(parentPostId);
             return Ok(posts);
         }
 
@@ -35,6 +35,7 @@ namespace Tuitter_API.Controllers
         }
 
         [HttpPost("add")]
+        [Authorize]
         public async Task<ActionResult<PostDto>> CreatePost([FromBody] CreatePostDto postInput, CancellationToken cancellationToken)
         {
             var userId = await loggedUserService.GetLoggedUserId(User);
@@ -43,6 +44,7 @@ namespace Tuitter_API.Controllers
         }
 
         [HttpDelete("{postId}")]
+        [Authorize]
         public async Task<IActionResult> DeletePost(int postId, CancellationToken cancellationToken)
         {
             var userId = await loggedUserService.GetLoggedUserId(User);

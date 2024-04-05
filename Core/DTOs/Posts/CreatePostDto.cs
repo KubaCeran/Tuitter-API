@@ -6,7 +6,7 @@ namespace Core.DTOs.Posts
     {
         [Required]
         public string Body { get; set; } = null!;
-        [Required]
-        public string[] Categories { get; set; } = null!;
+        public string[]? Categories { get; set; }
+        public int? ParentPostId { get; set; }
     }
 }

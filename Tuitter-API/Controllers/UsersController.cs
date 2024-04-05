@@ -18,10 +18,10 @@ namespace Tuitter_API.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<LoginResultDto>> Login([FromBody] RegisterDto registerDto)
+        public async Task<ActionResult<LoginResultDto>> Login([FromBody] LoginDto loginDto)
         {
 
-            var response = await userService.LoginUser(registerDto);
+            var response = await userService.LoginUser(loginDto);
             return Ok(response);
         }
 

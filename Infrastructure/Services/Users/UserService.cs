@@ -81,7 +81,7 @@ public class UserService(
     }
     private JwtSecurityToken GetToken(IList<Claim> authClaims)
     {
-        var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authOptions.Value.Secret));
+        var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authOptions.Value.Secret!));
 
         return new JwtSecurityToken(
             issuer: authOptions.Value.ValidIssuer,
