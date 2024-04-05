@@ -1,17 +1,13 @@
-﻿using Core.Enums;
+﻿using Core.DTOs.Users.Login;
+using Core.Enums;
 using System.ComponentModel.DataAnnotations;
 
 namespace Core.DTOs.Users.Register
 {
-    public class RegisterDto
+    public class RegisterDto : LoginDto
     {
         [Required(ErrorMessage = "Username is required")]
         public string Username { get; set; } = null!;
-        [Required(ErrorMessage = "Email is required")]
-        [EmailAddress]
-        public string Email { get; set; } = null!;
-        [Required(ErrorMessage = "Password is required")]
-        public string Password { get; set; } = null!;
         public UserRoles UserRole { get; set; }
     }
 }

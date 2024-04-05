@@ -1,9 +1,13 @@
-﻿using Core.DTOs.Options.Auth;
+﻿using AutoMapper;
+using Core.DTOs.Options.Auth;
+using Core.DTOs.Posts;
+using Core.DTOs.Users;
 using Core.DTOs.Users.Login;
 using Core.DTOs.Users.Register;
 using Core.Entities;
-using Infrastructure.DataContext;
+using Infrastructure.Middlewares.Exceptions;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -16,21 +20,27 @@ public class UserService(
     UserManager<User> userManager,
     RoleManager<IdentityRole<int>> roleManager,
     IOptions<AuthConfiguration> authOptions,
-    TuitterContext dataContext) : IUserService
+    IMapper mapper) : IUserService
 {
-    public async Task<User> GetUserById(int id)
+    public async Task<UserDto> GetUserById(int userId, CancellationToken cancellationToken)
     {
-        return await dataContext.Users.FindAsync(id);
+        var user = await userManager.Users.Include(x => x.Posts).ThenInclude(x => x.Categories).FirstOrDefaultAsync(x => x.Id == userId, cancellationToken) ??
+            throw new BadRequestException($"User with ID:{userId} not found");
+
+        return mapper.Map<UserDto>(user, opt => opt.AfterMap((src, dest) =>
+        {
+            dest.Posts = mapper.Map<IEnumerable<PostDto>>(user.Posts);
+        }));
     }
 
-    public async Task<LoginResultDto> LoginUser(RegisterDto registerDto)
+    public async Task<LoginResultDto> LoginUser(LoginDto loginDto)
     {
-        var user = await userManager.FindByNameAsync(registerDto.Username);
-        if (user != null && await userManager.CheckPasswordAsync(user, registerDto.Password))
+        var user = await userManager.FindByEmailAsync(loginDto.Email);
+        if (user is not null && await userManager.CheckPasswordAsync(user, loginDto.Password))
         {
             var authClaims = new List<Claim>
                     {
-                        new Claim(ClaimTypes.Name, user.UserName),
+                        new Claim(ClaimTypes.Name, user.UserName!),
                         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                     };
             var token = GetToken(authClaims);
@@ -43,30 +53,17 @@ public class UserService(
             return new LoginResultDto
             {
                 Token = tokenString,
-                Username = user.UserName,
                 ExpiresAt = token.ValidTo,
-                IsError = false,
-                ResponseMsg = "User logged in successfully!"
             };
         }
-        return new LoginResultDto
-        {
-            IsError = true,
-            ResponseMsg = "Incorrect username or password!"
-        };
+        throw new BadRequestException("Incorrect login credentials!");
     }
 
-    public async Task<RegisterResultDto> RegisterUser(RegisterDto registerDto)
+    public async Task RegisterUser(RegisterDto registerDto)
     {
         var userExists = await userManager.FindByNameAsync(registerDto.Username);
-        if (userExists != null)
-        {
-            return new RegisterResultDto
-            {
-                IsError = true,
-                ResponseMsg = "Username taken!"
-            };
-        }
+        if (userExists is not null)
+            throw new ConflictException("Username taken!");
 
         var user = new User()
         {
@@ -79,23 +76,8 @@ public class UserService(
         var userRole = registerDto.UserRole.ToString();
         await roleManager.CreateAsync(new IdentityRole<int> { Name =  userRole});
         await userManager.AddToRoleAsync(user, userRole);
-        var errorList = result.Errors.Select(x => x.Description).ToList();
-        if (result.Succeeded)
-        {
-            return new RegisterResultDto
-            {
-                IsError = false,
-                ResponseMsg = "User created!"
-            };
-        }
-        else
-        {
-            return new RegisterResultDto
-            {
-                IsError = true,
-                ResponseMsg = String.Join(' ', errorList)
-            };
-        }
+        if (!result.Succeeded)
+            throw new Exception("Something went wrong during creation of a user");
     }
     private JwtSecurityToken GetToken(IList<Claim> authClaims)
     {

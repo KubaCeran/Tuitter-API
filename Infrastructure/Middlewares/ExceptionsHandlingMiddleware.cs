@@ -15,6 +15,7 @@ namespace Infrastructure.Middlewares
                 ArgumentException => $"Bad request. {exception.Message} {exception.StackTrace}",
                 ForbiddenException => $"Access denied. {exception.Message} {exception.StackTrace}",
                 NotFoundException => $"Resource not found. {exception.Message} {exception.StackTrace}",
+                ConflictException => $"Conflict with exisiting resource. {exception.Message} {exception.StackTrace}",
                 _ => $"Something went wrong. {exception.Message} {exception.StackTrace}"
             };
 
@@ -24,7 +25,8 @@ namespace Infrastructure.Middlewares
                 ArgumentException => $"{exception.Message}",
                 ForbiddenException => $"{exception.Message}",
                 NotFoundException => $"{exception.Message}",
-                _ => $"Something went wrong."
+                ConflictException => $"Conflict with exisiting resource. {exception.Message}",
+                _ => $"Something went wrong - server error."
             };
 
             int statusCode = exception switch
@@ -33,6 +35,7 @@ namespace Infrastructure.Middlewares
                 ArgumentException => StatusCodes.Status400BadRequest,
                 ForbiddenException => StatusCodes.Status403Forbidden,
                 NotFoundException => StatusCodes.Status404NotFound,
+                ConflictException => StatusCodes.Status409Conflict,
                 _ => StatusCodes.Status500InternalServerError
             };
 
